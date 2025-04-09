@@ -162,6 +162,34 @@ def download_file():
     except Exception as e:
         return render_template("index.html", error=f"Download failed: {str(e)}")
 
+@app.route("/download_encrypted", methods=["GET", "POST"])
+def download_encrypted():
+    if request.method == "GET":
+        return redirect("/")  # or show a message or form
+
+    code = request.form.get("code", "").strip()
+    # rest of the POST logic...
+
+
+    if not code:
+        return render_template("index.html", error="Access code is required")
+
+    if code not in file_data:
+        return render_template("index.html", error="Invalid access code")
+
+    encrypted_file_path = file_data[code]["path"]
+    encrypted_filename = os.path.basename(encrypted_file_path)
+
+    if not os.path.exists(encrypted_file_path):
+        return render_template("index.html", error="File expired or deleted")
+
+    return send_file(
+        encrypted_file_path,
+        as_attachment=True,
+        download_name=encrypted_filename
+    )
+
+
 # Keep-Alive Function (Prevents Render Shutdown)
 def keep_alive():
     while True:
